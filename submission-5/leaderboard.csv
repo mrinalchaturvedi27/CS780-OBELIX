@@ -1,0 +1,2 @@
+timestamp_utc,agent_name,mean_score,std_score,runs,max_steps,scaling_factor,arena_size,wall_obstacles,difficulty,box_speed
+2026-03-15T16:28:20.430582+00:00,DDQN_v3_Peak,-10993.100000,8815.436375,10,1000,5,500,0,0,2

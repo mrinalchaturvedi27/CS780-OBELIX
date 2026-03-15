@@ -1,9 +1,4 @@
-"""
-Submission 5: Dueling DDQN with Frame Stacking (k=4) for OBELIX.
 
-Loads weights trained by train_ddqn_v2.py (DuelingDQN, 72-dim input).
-Greedy policy (ε=0) at eval time.
-"""
 
 from __future__ import annotations
 import os
@@ -15,14 +10,14 @@ from collections import deque
 
 ACTIONS = ["L45", "L22", "FW", "R22", "R45"]
 
-# Constants must match what train_ddqn_v2.py used
+
 _FRAME_STACK = 4
 _OBS_DIM     = 18
 _IN_DIM      = _FRAME_STACK * _OBS_DIM   # 72
 
 
 class DuelingDQN(nn.Module):
-    """Dueling DDQN: shared encoder → Value stream + Advantage stream."""
+
 
     def __init__(self, in_dim: int = _IN_DIM, n_actions: int = 5):
         super().__init__()
@@ -42,7 +37,7 @@ class DuelingDQN(nn.Module):
         return v + a - a.mean(dim=1, keepdim=True)
 
 
-# ── Module-level state ─────────────────────────────────────────────────────────
+
 _model       : Optional[DuelingDQN] = None
 _frame_buf   : deque                = deque(maxlen=_FRAME_STACK)
 _last_action : Optional[int]        = None
@@ -50,8 +45,8 @@ _repeat_cnt  : int                  = 0
 _ep_steps    : int                  = 0
 
 _MAX_EPISODE_STEPS = 2100
-_CLOSE_Q_DELTA     = 0.1   # threshold for action smoothing
-_MAX_REPEAT        = 3     # max repeated actions before forcing switch
+_CLOSE_Q_DELTA     = 0.1
+_MAX_REPEAT        = 3
 
 
 def _load_model() -> None:
@@ -63,7 +58,7 @@ def _load_model() -> None:
     if not os.path.exists(wpath):
         raise FileNotFoundError(f"weights.pth not found at {wpath}")
     m = DuelingDQN()
-    state_dict = torch.load(wpath, map_location="cpu")
+    state_dict = torch.load(wpath, map_location="cpu", weights_only=True)
     m.load_state_dict(state_dict)
     m.eval()
     _model = m
@@ -84,25 +79,20 @@ def policy(obs: np.ndarray, rng: np.random.Generator) -> str:
 
     _load_model()
 
-    # ── Episode reset detection ────────────────────────────────────────────────
-    _ep_steps += 1
-    if _ep_steps == 1 or _ep_steps >= _MAX_EPISODE_STEPS:
-        _init_frame_buf(obs)
-        _last_action = None
-        _repeat_cnt  = 0
-        if _ep_steps >= _MAX_EPISODE_STEPS:
-            _ep_steps = 1
 
-    # ── Update frame stack ────────────────────────────────────────────────────
-    _frame_buf.append(obs.copy())
+    if not _frame_buf:
+        _init_frame_buf(obs)
+    else:
+        _frame_buf.append(obs.copy())
+
     stacked = _get_stacked()
 
-    # ── Greedy Q-inference ────────────────────────────────────────────────────
-    x = torch.tensor(stacked).unsqueeze(0)   # (1, 72)
-    q = _model(x).squeeze(0).numpy()         # (5,)
+
+    x = torch.tensor(stacked).unsqueeze(0)
+    q = _model(x).squeeze(0).numpy()
     best = int(np.argmax(q))
 
-    # ── Action smoothing: prevent flip-flopping when top-2 Q-values are close ─
+
     if _last_action is not None:
         order       = np.argsort(-q)
         q_best      = float(q[order[0]])

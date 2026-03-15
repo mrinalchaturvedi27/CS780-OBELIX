@@ -180,7 +180,7 @@ def train(args) -> None:
     recent_returns = deque(maxlen=50)   # track recent episode returns
 
     for ep in range(args.episodes):
-        raw_obs = env.reset(seed=args.seed + ep)
+        raw_obs = env.reset()
         s       = fs.reset(raw_obs)
         ep_ret  = 0.0
 
