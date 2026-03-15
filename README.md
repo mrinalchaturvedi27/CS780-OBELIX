@@ -89,6 +89,125 @@ Difficulty knobs:
 
 This appends a row to `leaderboard.csv`.
 
+---
+
+## How to Make Your 4 Codabench Submissions
+
+The `submissions/` folder contains **four ready-to-use agents**, each progressively
+more sophisticated. Follow these steps to produce and submit each one.
+
+### Overview
+
+| # | Folder | Algorithm | Training required? |
+|---|--------|-----------|-------------------|
+| 1 | `submissions/submission1_random/` | Biased random walk | No |
+| 2 | `submissions/submission2_heuristic/` | Sensor-driven heuristic | No |
+| 3 | `submissions/submission3_qlearning/` | Tabular Q-learning | Yes (`train_qlearning.py`) |
+| 4 | `submissions/submission4_ddqn/` | Double DQN | Yes (`train_ddqn.py`) |
+
+### Prerequisites
+
+```bash
+pip install -r requirements.txt   # numpy, opencv-python, torch
+```
+
+---
+
+### Submission 1 — Random Baseline (no training)
+
+Test that the Codabench pipeline accepts your zip before investing training time.
+
+```bash
+# Evaluate locally
+python evaluate.py --agent_file submissions/submission1_random/agent.py --runs 5
+
+# Package
+python package_submission.py submissions/submission1_random
+# → creates submission1_random.zip — upload this to Codabench
+```
+
+---
+
+### Submission 2 — Heuristic Agent (no training)
+
+A hand-crafted rule-based policy using sensor readings to steer toward the box.
+
+```bash
+# Evaluate locally
+python evaluate.py --agent_file submissions/submission2_heuristic/agent.py --runs 5
+
+# Package
+python package_submission.py submissions/submission2_heuristic
+# → creates submission2_heuristic.zip — upload this to Codabench
+```
+
+---
+
+### Submission 3 — Tabular Q-learning
+
+Train the Q-table, then package the agent + Q-table together.
+
+```bash
+# Step 1 — Train (saves qtable.npy directly into the submission folder)
+python train_qlearning.py --episodes 6000 --difficulty 0
+
+# Step 2 — Evaluate locally
+python evaluate.py --agent_file submissions/submission3_qlearning/agent.py --runs 5
+
+# Step 3 — Package
+python package_submission.py submissions/submission3_qlearning
+# → creates submission3_qlearning.zip — upload this to Codabench
+```
+
+Train on harder difficulties for extra challenge:
+
+```bash
+python train_qlearning.py --episodes 8000 --difficulty 2 --wall_obstacles
+python train_qlearning.py --episodes 10000 --difficulty 3 --wall_obstacles
+```
+
+---
+
+### Submission 4 — Double DQN (neural network)
+
+Train the network, then package the agent + weights together.
+
+```bash
+# Step 1 — Train (saves weights.pth directly into the submission folder)
+python train_ddqn.py --episodes 3000 --difficulty 0
+
+# Step 2 — Evaluate locally
+python evaluate.py --agent_file submissions/submission4_ddqn/agent.py --runs 5
+
+# Step 3 — Package
+python package_submission.py submissions/submission4_ddqn
+# → creates submission4_ddqn.zip — upload this to Codabench
+```
+
+Train on harder difficulties for higher scores:
+
+```bash
+python train_ddqn.py --episodes 5000 --difficulty 2 --wall_obstacles
+python train_ddqn.py --episodes 8000 --difficulty 3 --wall_obstacles
+```
+
+---
+
+### Observation Layout Reference
+
+| Index | Sensor | Description |
+|-------|--------|-------------|
+| 0, 2 | Sonar near (left) | Object in left near range |
+| 1, 3 | Sonar far (left) | Object in left far range |
+| 4, 6, 8, 10 | Sonar near (forward) | Object in forward near range |
+| 5, 7, 9, 11 | Sonar far (forward) | Object in forward far range |
+| 12, 14 | Sonar near (right) | Object in right near range |
+| 13, 15 | Sonar far (right) | Object in right far range |
+| 16 | IR sensor | Object directly ahead (very close) |
+| 17 | Stuck flag | 1 = robot cannot move forward |
+
+
+
 ## References
 
 - [Automatic Programming of Behaviour-based Robots using Reinforcement Learning](https://cdn.aaai.org/AAAI/1991/AAAI91-120.pdf)
